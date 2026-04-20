@@ -1,19 +1,13 @@
 import { useTheme } from '@/app/providers/theme';
 import { Button } from '@/shared/ui/Button';
-import { Sun, Moon, Monitor, type LucideIcon } from 'lucide-react';
+import { THEME_OPTIONS } from './constants';
 
 export function ThemeToggle() {
     const { theme, setTheme } = useTheme();
 
-    const options: { mode: typeof theme; icon: LucideIcon }[] = [
-        { mode: 'light', icon: Sun },
-        { mode: 'dark', icon: Moon },
-        { mode: 'system', icon: Monitor },
-    ];
-
     return (
         <div className='flex items-center gap-1 p-0.5 border rounded-md bg-muted/30'>
-            {options.map(({ mode, icon: Icon }) => (
+            {THEME_OPTIONS.map(({ mode, icon: Icon }) => (
                 <Button
                     key={mode}
                     variant={theme === mode ? 'outline' : 'ghost'}

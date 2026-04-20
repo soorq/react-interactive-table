@@ -6,8 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { fileURLToPath } from 'node:url';
 
-const dirname =
-	typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
 	plugins: [
@@ -25,7 +25,7 @@ export default defineConfig({
 	test: {
 		environment: 'jsdom',
 		globals: true,
-		setupFiles: path.join(dirname, 'src/shared/configs/tests/setup.ts'),
+		setupFiles: path.join(__dirname, 'src/shared/configs/tests/setup.ts'),
 		coverage: {
 			provider: 'v8',
 			reporter: ['text', 'json', 'html'],
