@@ -1,3 +1,4 @@
+import { ThemeToggle } from '@/features/theme/theme-toggle';
 import { LayoutDashboard } from 'lucide-react';
 
 export function Header() {
@@ -18,7 +19,9 @@ export function Header() {
                     </div>
                 </div>
 
-                <div className='flex items-center gap-2.5'>{/* <ThemeToggle /> */}</div>
+                <div className='flex items-center gap-2.5'>
+                    <ThemeToggle />
+                </div>
             </div>
         </header>
     );
