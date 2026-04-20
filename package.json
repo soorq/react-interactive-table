@@ -6,16 +6,25 @@
 	"scripts": {
 		"start:dev": "vite",
 		"start:prod": "vite preview",
+		"start:book": "storybook dev -p 6006",
+		"build:book": "storybook build",
 		"build": "tsc -b && vite build",
 		"lint": "eslint .",
-		"start:book": "storybook dev -p 6006",
-		"build:book": "storybook build"
+		"test": "vitest --run",
+		"test:watch": "vitest --w",
+		"test:ui": "vitest --ui",
+		"test:coverage": "vitest --run --coverage"
 	},
 	"dependencies": {
 		"@tailwindcss/vite": "^4.2.2",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
+		"class-variance-authority": "^0.7.1",
+		"clsx": "^2.1.1",
 		"lucide-react": "^1.8.0",
 		"react": "^19.2.5",
 		"react-dom": "^19.2.5",
+		"tailwind-merge": "^3.5.0",
 		"tailwindcss": "^4.2.2"
 	},
 	"devDependencies": {
@@ -40,6 +49,7 @@
 		"eslint-plugin-react-refresh": "^0.5.2",
 		"eslint-plugin-storybook": "^10.3.5",
 		"globals": "^17.5.0",
+		"jsdom": "^29.0.2",
 		"playwright": "^1.59.1",
 		"storybook": "^10.3.5",
 		"typescript": "~6.0.2",

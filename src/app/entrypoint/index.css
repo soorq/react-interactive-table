@@ -151,6 +151,46 @@
 	h4,
 	h5,
 	h6 {
-		@apply font-mono;
+		@apply scroll-m-20 tracking-tight;
+	}
+
+	h1 {
+		@apply text-center text-4xl font-extrabold text-balance;
+	}
+	h2 {
+		@apply border-b pb-2 text-3xl font-semibold first:mt-0;
+	}
+	h3 {
+		@apply text-2xl font-semibold;
+	}
+	h4 {
+		@apply text-xl font-semibold;
+	}
+	h5 {
+		@apply text-center text-4xl font-extrabold text-balance;
+	}
+	h6 {
+		@apply text-center text-4xl font-extrabold text-balance;
+	}
+
+	p {
+		@apply leading-7 [&:not(:first-child)]:mt-6;
+	}
+
+	blockquote {
+		@apply mt-6 border-l-2 pl-6 italic;
+	}
+
+	ul {
+		@apply my-6 ml-6 list-disc [&>li]:mt-2;
+	}
+
+	code {
+		@apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold;
+	}
+
+	button:not(:disabled),
+	[role='button']:not(:disabled) {
+		cursor: pointer;
 	}
 }

@@ -1,33 +1,35 @@
-export interface ButtonProps {
-    /** Is this the principal call to action on the page? */
-    primary?: boolean;
-    /** What background color to use */
-    backgroundColor?: string;
-    /** How large should the button be? */
-    size?: 'small' | 'medium' | 'large';
-    /** Button contents */
-    label: string;
-    /** Optional click handler */
-    onClick?: () => void;
+import * as React from 'react';
+import { buttonVariants } from './variants';
+import type { VariantProps } from 'class-variance-authority';
+import { cn } from '@/shared/lib/utils';
+
+export type ButtonProps<T extends React.ElementType = 'button'> = {
+    as?: T;
+    dataSlot?: string;
+} & React.ComponentProps<T> &
+    VariantProps<typeof buttonVariants>;
+
+function Button<T extends React.ElementType = 'button'>({
+    className,
+    as,
+    variant = 'default',
+    size = 'default',
+    dataSlot,
+    ref,
+    ...props
+}: ButtonProps<T>) {
+    const Slot = as || 'button';
+
+    return (
+        <Slot
+            ref={ref}
+            data-slot={dataSlot}
+            data-variant={variant}
+            data-size={size}
+            className={cn(buttonVariants({ variant, size, className }))}
+            {...props}
+        />
+    );
 }
 
-/** Primary UI component for user interaction */
-export const Button = ({
-    primary = false,
-    size = 'medium',
-    backgroundColor,
-    label,
-    ...props
-}: ButtonProps) => {
-    const mode = primary ? 'storybook-button--primary' : 'storybook-button--secondary';
-    return (
-        <button
-            type="button"
-            className={['storybook-button', `storybook-button--${size}`, mode].join(' ')}
-            style={{ backgroundColor }}
-            {...props}
-        >
-            {label}
-        </button>
-    );
-};
+export { Button };
