@@ -1,0 +1,143 @@
+import { ALL_PROJECTS, API } from '@/shared/api';
+import type { IParams, IProjectResponse } from '../model/types';
+
+type TCacheEntry<T extends unknown> = {
+	data: T;
+	createdAt: number;
+};
+
+type QueryKey<P> = readonly [string, P];
+
+/**
+ * Сервис управления проектами.
+ * Реализует логику кэширования, дедупликации запросов (Request Collapsing)
+ * и эмуляции серверных вычислений.
+ */
+export class ProjectsService {
+	private static cache = new Map<string, TCacheEntry<any>>();
+	private static inFlightRequests = new Map<string, Promise<any>>();
+	private static STALE_TIME = 5 * 60 * 1000;
+
+	/**
+	 * Главная точка входа для получения списка проектов.
+	 * * Сначала проверяет кэш. Если данных нет или они просрочены, ищет уже выполняющийся
+	 * аналогичный запрос, чтобы избежать лишней нагрузки (проблема Race Condition).
+	 * @template T Структура ответа (наследует IProjectResponse).
+	 * @param queryKey Кортеж из ключа и параметров фильтрации/пагинации.
+	 * @param signal Сигнал для отмены запроса (AbortController).
+	 * @returns Промис с данными проектов.
+	 */
+	static async getAllProjects<T extends IProjectResponse = IProjectResponse>(
+		queryKey: QueryKey<IParams>,
+		signal?: AbortSignal,
+	): Promise<T> {
+		const hash = this.serializeKey(queryKey);
+		const now = Date.now();
+
+		const cached = this.cache.get(hash);
+		if (this.isFresh<T>(cached) && now - cached.createdAt < this.STALE_TIME) {
+			return cached.data;
+		}
+
+		if (signal?.aborted) {
+			return Promise.reject(new DOMException('Aborted', 'AbortError'));
+		}
+
+		const inFlight = this.inFlightRequests.get(hash);
+		if (inFlight) {
+			return inFlight;
+		}
+
+		const promise = this.fetch<T>(hash, queryKey[1], signal);
+		this.inFlightRequests.set(hash, promise);
+
+		return promise;
+	}
+
+	private static async fetch<T extends IProjectResponse>(
+		hash: string,
+		params: IParams,
+		signal?: AbortSignal,
+	): Promise<T> {
+		try {
+			const payload = this.calcBackendData<T>(params);
+			const result = await API.get<T>('/projects', { mock: payload, signal });
+
+			this.cache.set(hash, {
+				data: result,
+				createdAt: Date.now(),
+			});
+
+			return result;
+		} catch (err) {
+			throw err;
+		} finally {
+			this.inFlightRequests.delete(hash);
+			console.log(this.inFlightRequests.get(hash), this.inFlightRequests.entries());
+		}
+	}
+
+	private static isFresh<T>(entry: any): entry is TCacheEntry<T> {
+		return entry && typeof entry.createdAt === 'number';
+	}
+
+	/**
+	 * Эмулятор серверной логики (Backend Mocking).
+	 * * Выполняет фильтрацию, сортировку и расчет метаданных пагинации
+	 * на основе сырых данных из ALL_PROJECTS.
+	 * * @template T Целевой тип данных. Используется принудительное приведение (as unknown as T),
+	 * так как мок является эталонной реализацией контракта IProjectResponse.
+	 */
+	private static calcBackendData<T extends IProjectResponse>(params: IParams): T {
+		const { limit = 20, page = 1, search = '', sortBy, sortOrder = 'asc' } = params;
+
+		const filtered = ALL_PROJECTS.filter(p => {
+			const lowSearch = search.toLowerCase();
+			return (
+				p.name?.toLowerCase().includes(lowSearch) ||
+				p.category?.toLowerCase().includes(lowSearch)
+			);
+		});
+
+		const sorted = [...filtered].sort((a, b) => {
+			if (!sortBy) return 0;
+			const aVal = a[sortBy as keyof typeof a];
+			const bVal = b[sortBy as keyof typeof b];
+			if (aVal === bVal) return 0;
+			const res = aVal! < bVal! ? -1 : 1;
+			return sortOrder === 'asc' ? res : -res;
+		});
+
+		return {
+			data: sorted.slice((page - 1) * limit, page * limit),
+			meta: {
+				page,
+				limit,
+				total: sorted.length,
+				pages: Math.ceil(sorted.length / limit),
+				hasNextPage: page < Math.ceil(sorted.length / limit),
+				hasPrevPage: page > 1,
+			},
+			// TODO: CAN RESOLVE NOT COMPILE TYPES
+		} as unknown as T;
+	}
+
+	/**
+	 * Создает детерминированный хэш-ключ из объекта параметров.
+	 * Сортирует ключи объекта перед сериализацией, чтобы { a:1, b:2 } и { b:2, a:1 }
+	 * выдавали идентичный хэш.
+	 */
+	private static serializeKey<P>(key: QueryKey<P>): string {
+		return JSON.stringify(key, (_, v) => {
+			if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+				return Object.keys(v)
+					.sort()
+					.reduce((acc, k) => {
+						acc[k] = (v as any)[k];
+						return acc;
+					}, {} as any);
+			}
+			return v;
+		});
+	}
+}

@@ -16,70 +16,67 @@ describe('Pagination Component Group', () => {
             <Pagination>
                 <PaginationContent>
                     <PaginationItem>
-                        <PaginationPrevious href='#' />
+                        <PaginationPrevious />
                     </PaginationItem>
                     <PaginationItem>
-                        <PaginationLink href='#' isActive>
-                            1
-                        </PaginationLink>
+                        <PaginationLink isActive>1</PaginationLink>
                     </PaginationItem>
                     <PaginationItem>
-                        <PaginationNext href='#' />
+                        <PaginationNext />
                     </PaginationItem>
                 </PaginationContent>
             </Pagination>,
         );
 
         const nav = screen.getByRole('navigation');
-        expect(nav).toHaveAttribute('aria-label', 'pagination');
+
+        expect(nav).toHaveAttribute('aria-label', 'Пагинация');
         expect(screen.getByRole('list')).toBeInTheDocument();
     });
 
     it('should apply active styles and aria-current to the active link', () => {
-        render(
-            <PaginationLink href='#' isActive>
-                2
-            </PaginationLink>,
-        );
+        render(<PaginationLink isActive>2</PaginationLink>);
 
-        const activeLink = screen.getByRole('link', { name: '2' });
+        const activeBtn = screen.getByRole('button', { name: '2' });
 
-        expect(activeLink).toHaveAttribute('aria-current', 'page');
-        expect(activeLink).toHaveAttribute('data-active', 'true');
-        expect(activeLink.className).toContain('border');
+        expect(activeBtn).toHaveAttribute('aria-current', 'page');
+        expect(activeBtn).toHaveAttribute('data-active', 'true');
+        expect(activeBtn).toHaveClass('pointer-events-none');
     });
 
-    it('should render Previous and Next buttons with text and icons', () => {
+    it('should render Previous and Next buttons with Russian text and icons', () => {
         render(
             <>
-                <PaginationPrevious href='/prev' text='Back' />
-                <PaginationNext href='/next' text='Forward' />
+                <PaginationPrevious text="Назад" />
+                <PaginationNext text="Вперед" />
             </>,
         );
-        const prev = screen.getByRole('link', { name: /go to previous page/i });
-        const next = screen.getByRole('link', { name: /go to next page/i });
 
-        expect(prev).toHaveAttribute('href', '/prev');
-        expect(next).toHaveAttribute('href', '/next');
-        expect(screen.getByText('Back')).toBeInTheDocument();
-        expect(screen.getByText('Forward')).toBeInTheDocument();
+        const prev = screen.getByRole('button', { name: /перейти на предыдущую страницу/i });
+        const next = screen.getByRole('button', { name: /перейти на следующую страницу/i });
+
+        expect(prev).toBeInTheDocument();
+        expect(next).toBeInTheDocument();
+        expect(screen.getByText('Назад')).toBeInTheDocument();
+        expect(screen.getByText('Вперед')).toBeInTheDocument();
     });
 
-    it('should render ellipsis with screen-reader text', () => {
+    it('should render ellipsis with screen-reader text in Russian', () => {
         render(<PaginationEllipsis />);
 
-        const srText = screen.getByText('More pages');
+        const srText = screen.getByText('Больше страниц');
         expect(srText).toHaveClass('sr-only');
+
+        const ellipsis = document.querySelector('[data-slot="pagination-ellipsis"]');
+        expect(ellipsis).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('should support custom class names for all sub-components', () => {
         render(
-            <Pagination className='custom-nav'>
-                <PaginationContent className='custom-content'>
-                    <PaginationItem className='custom-item'>
-                        <PaginationLink href='#' className='custom-link'>
-                            1
-                        </PaginationLink>
+            <Pagination className="custom-nav">
+                <PaginationContent className="custom-content">
+                    <PaginationItem className="custom-item">
+                        <PaginationLink className="custom-link">1</PaginationLink>
                     </PaginationItem>
                 </PaginationContent>
             </Pagination>,
@@ -88,6 +85,6 @@ describe('Pagination Component Group', () => {
         expect(screen.getByRole('navigation')).toHaveClass('custom-nav');
         expect(screen.getByRole('list')).toHaveClass('custom-content');
         expect(screen.getByRole('listitem')).toHaveClass('custom-item');
-        expect(screen.getByRole('link')).toHaveClass('custom-link');
+        expect(screen.getByRole('button')).toHaveClass('custom-link');
     });
 });
